@@ -1,82 +1,50 @@
-```text
-# /$$$$$$$   /$$$$$$   /$$$$$$        /$$  /$$$$$$    /$$  
-#| $$__  $$ /$$__  $$ /$$__  $$      | $$ /$$__  $$ /$$$$  
-#| $$  \ $$| $$  \__/|__/  \ $$  /$$$$$$$| $$  \ $$|_  $$  
-#| $$$$$$$ | $$ /$$$$   /$$$$$/ /$$__  $$|  $$$$$$/  | $$  
-#| $$__  $$| $$|_  $$  |___  $$| $$  | $$ >$$__  $$  | $$  
-#| $$  \ $$| $$  \ $$ /$$  \ $$| $$  | $$| $$  \ $$  | $$  
-#| $$$$$$$/|  $$$$$$/|  $$$$$$/|  $$$$$$$|  $$$$$$/ /$$$$$$
-#|_______/  \______/  \______/  \_______/ \______/ |______/
-#                                                         
-#                                                        
-#         KlipperKontrol
-#      Industrial Klipper UI
-```
-KlipperKontrol est une application Android tactile conçue pour contrôler une imprimante 3D sous Klipper via Moonraker.
+# Welcome to your Expo app 👋
 
-L’objectif du projet est de proposer une interface :
-- minimaliste,
-- ultra lisible,
-- tactile,
-- rapide,
-- pensée pour un écran embarqué près de l’imprimante.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-Contrairement à Fluidd ou Mainsail, KlipperKontrol est conçu comme un véritable panneau de contrôle industriel dédié à l’impression 3D.
+## Get started
 
----
+1. Install dependencies
 
-# Fonctionnalités
+   ```bash
+   npm install
+   ```
 
-## Températures temps réel
-- Hotend
-- Bed
-- Mise à jour live via Moonraker
+2. Start the app
 
-## Modification des températures
-- Appui tactile sur la température
-- Entrée numérique directe
-- Envoi immédiat des commandes Klipper
+   ```bash
+   npx expo start
+   ```
 
-## Contrôle vitesse / flow
-- Sliders tactiles
-- Snap magnétique à 100%
-- Entrée numérique précise
-- Boutons reset individuels
+In the output, you'll find options to open the app in a
 
-## Emergency Stop
-- Bouton d’arrêt d’urgence dédié
-- Confirmation obligatoire avant arrêt
-- Retour haptique Android
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-## Informations impression
-- Barre de progression
-- Pourcentage
-- Temps total estimé
-- Temps restant
-- Nom du fichier GCODE
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## Interface responsive
-Optimisée pour :
-- écrans 1024x600
-- tablettes Android
-- écrans tactiles Raspberry Pi
-- écrans KlipperScreen
+## Get a fresh project
 
----
-
-# Technologies utilisées
-
-- React Native
-- Expo
-- Moonraker API
-- React Native Slider
-- Expo Haptics
-
----
-
-# Installation
-
-## Cloner le projet
+When you're ready, run:
 
 ```bash
-git clone https://github.com/USERNAME/KlipperKontrol.git
+npm run reset-project
+```
+
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+
+## Learn more
+
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

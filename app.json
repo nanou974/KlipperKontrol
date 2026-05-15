@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "KlipperKontrol",
+    "slug": "KlipperKontrol",
+    "version": "1.0.0",
+    "orientation": "landscape",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "com.klipper.kontrol"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8cd4ddc6-8f5d-473e-b0ea-c27327b53538"
+      }
+    }
+  }
+}
