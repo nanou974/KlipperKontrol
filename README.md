@@ -1,322 +1,50 @@
-```text
- /$$$$$$$   /$$$$$$   /$$$$$$        /$$  /$$$$$$    /$$  
-| $$__  $$ /$$__  $$ /$$__  $$      | $$ /$$__  $$ /$$$$  
-| $$  \ $$| $$  \__/|__/  \ $$  /$$$$$$$| $$  \ $$|_  $$  
-| $$$$$$$ | $$ /$$$$   /$$$$$/ /$$__  $$|  $$$$$$/  | $$  
-| $$__  $$| $$|_  $$  |___  $$| $$  | $$ >$$__  $$  | $$  
-| $$  \ $$| $$  \ $$ /$$  \ $$| $$  | $$| $$  \ $$  | $$  
-| $$$$$$$/|  $$$$$$/|  $$$$$$/|  $$$$$$$|  $$$$$$/ /$$$$$$
-|_______/  \______/  \______/  \_______/ \______/ |______/
-```
+# Welcome to your Expo app 👋
 
-# KlipperKontrol
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-Industrial Android control panel for Klipper 3D printers.
+## Get started
 
-KlipperKontrol is a touchscreen-oriented Android application designed to control a Klipper-based 3D printer through Moonraker.
+1. Install dependencies
 
-Unlike Fluidd or Mainsail, KlipperKontrol is designed as a dedicated industrial control interface:
-- minimal,
-- readable from distance,
-- fast,
-- tactile,
-- workshop-oriented.
+   ```bash
+   npm install
+   ```
 
-# Android DNS Issue
+2. Start the app
 
-Some Android devices using:
-- custom DNS,
-- ad blockers,
-- private DNS,
-- VPN DNS filtering,
+   ```bash
+   npx expo start
+   ```
 
-may block GitHub release downloads or local Moonraker HTTP connections.
+In the output, you'll find options to open the app in a
 
-If APK downloads fail with errors such as:
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-```text
-ERR_SSL_PROTOCOL_ERROR
-```
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-try:
-- disabling Private DNS,
-- disabling DNS filtering,
-- disabling adblock DNS,
-- or temporarily switching back to automatic DNS.
+## Get a fresh project
 
-This issue is unrelated to KlipperKontrol itself and is caused by Android network filtering.
-
-
----
-
-# Features
-
-## Real-time temperatures
-- Hotend
-- Bed
-- Live Moonraker updates
-
-## Temperature control
-- Tap to edit temperatures
-- Numeric input popup
-- Instant Klipper commands
-
-## Speed / Flow controls
-- Touch sliders
-- Magnetic snap at 100%
-- Direct numeric input
-- Individual reset buttons
-
-## Emergency Stop
-- Dedicated emergency stop button
-- Confirmation popup
-- Haptic feedback
-
-## Print monitoring
-- Live progress bar
-- Percentage display
-- Remaining print time
-- Estimated total duration
-- Current GCODE filename
-
-## Responsive UI
-Optimized for:
-- 1024x600 displays
-- Android tablets
-- Raspberry Pi touchscreens
-- KlipperScreen displays
-
----
-
-# Technologies
-
-- React Native
-- Expo
-- Moonraker API
-- React Native Slider
-- Expo Haptics
-
----
-
-# Installation
-
-## Clone repository
+When you're ready, run:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/KlipperKontrol.git
+npm run reset-project
 ```
 
----
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-# Install dependencies
+## Learn more
 
-```bash
-npm install
-```
+To learn more about developing your project with Expo, look at the following resources:
 
----
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-# Start development server
+## Join the community
 
-```bash
-npx expo start --clear
-```
+Join our community of developers creating universal apps.
 
-Then:
-
-```text
-a
-```
-
-to launch directly on Android.
-
----
-
-# Moonraker configuration
-
-Edit inside:
-
-```text
-App.js
-```
-
-the line:
-
-```javascript
-const MOONRAKER_IP = '192.168.1.74'
-```
-
-with your Klipper server IP.
-
----
-
-# Moonraker API
-
-KlipperKontrol communicates with:
-
-```text
-http://IP:7125
-```
-
----
-
-# Endpoints used
-
-## Printer status
-
-```text
-/printer/objects/query
-```
-
-## Send GCODE
-
-```text
-/printer/gcode/script
-```
-
-## Emergency stop
-
-```text
-/printer/emergency_stop
-```
-
----
-
-# Klipper commands
-
-## Speed Factor
-
-```gcode
-M220 S100
-```
-
-## Flow Factor
-
-```gcode
-M221 S100
-```
-
-## Hotend Temperature
-
-```gcode
-M104 S220
-```
-
-## Bed Temperature
-
-```gcode
-M140 S80
-```
-
----
-
-# APK Build
-
-## Install EAS CLI
-
-```bash
-npm install -g eas-cli
-```
-
----
-
-# Expo login
-
-```bash
-eas login
-```
-
----
-
-# Configure EAS
-
-```bash
-eas build:configure
-```
-
----
-
-# Generate APK
-
-```bash
-eas build -p android --profile preview
-```
-
----
-
-# Project structure
-
-```text
-KlipperKontrol/
-│
-├── App.js
-├── app.json
-├── eas.json
-├── package.json
-│
-├── assets/
-│
-└── node_modules/
-```
-
----
-
-# ETA System
-
-KlipperKontrol uses:
-- dynamic ETA calculation,
-- moving average,
-- ETA smoothing,
-- anti-spike filtering.
-
-This creates:
-- stable estimates,
-- cleaner UI behavior,
-- more realistic print times.
-
----
-
-# Roadmap
-
-## UI / UX
-- glow effects
-- smooth animations
-- kiosk mode
-- industrial themes
-- always-on display
-
-## Features
-- webcam integration
-- Klipper macros
-- multi-printer support
-- print history
-- Android notifications
-
-## System
-- standalone APK
-- Android autostart
-- Moonraker watchdog
-- offline mode
-
----
-
-# Philosophy
-
-KlipperKontrol is not intended to clone Fluidd.
-
-The goal is to create:
-- a dedicated control interface,
-- extremely fast,
-- tactile,
-- readable from distance,
-- designed for real workshop usage.
-
-The objective is to transform an Android tablet into a real industrial 3D printer control panel.
-
----
-
-# License
-
-Personal / experimental project.
-
-Free to modify and improve.
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

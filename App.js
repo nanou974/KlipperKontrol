@@ -1,4 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
+
 import {
   View,
   Text,
@@ -11,41 +16,103 @@ import {
 } from 'react-native'
 
 import Slider from '@react-native-community/slider'
-
 import * as Haptics from 'expo-haptics'
 
-const MOONRAKER_IP = '192.168.1.74'
+const DEFAULT_IP = '192.168.1.74'
 const MOONRAKER_PORT = '7125'
 
-const { width, height } = Dimensions.get('window')
-const scale = Math.min(width / 1024, height / 600)
+const { width, height } =
+  Dimensions.get('window')
+
+const scale = Math.min(
+  width / 1024,
+  height / 600
+)
 
 export default function App() {
-  const [hotend, setHotend] = useState('0.0')
-  const [bed, setBed] = useState('0.0')
+  // =========================
+  // CONNECTION
+  // =========================
 
-  const [hotendTarget, setHotendTarget] =
+  const [printerIp, setPrinterIp] =
+    useState(DEFAULT_IP)
+
+  const [connected, setConnected] =
+    useState(false)
+
+  const [
+    connectModalVisible,
+    setConnectModalVisible,
+  ] = useState(false)
+
+  const [ipInput, setIpInput] =
+    useState(DEFAULT_IP)
+
+  // =========================
+  // TEMPERATURES
+  // =========================
+
+  const [hotend, setHotend] =
+    useState('0.0')
+
+  const [bed, setBed] =
+    useState('0.0')
+
+  const [
+    hotendTarget,
+    setHotendTarget,
+  ] = useState(0)
+
+  const [
+    bedTarget,
+    setBedTarget,
+  ] = useState(0)
+
+  // =========================
+  // PRINT INFO
+  // =========================
+
+  const [progress, setProgress] =
     useState(0)
-
-  const [bedTarget, setBedTarget] =
-    useState(0)
-
-  const [progress, setProgress] = useState(0)
 
   const [filename, setFilename] =
     useState('No file')
 
   const [totalTime, setTotalTime] =
-    useState('0h0m0s')
+    useState('Analyzing print...')
 
-  const [remainingTime, setRemainingTime] =
-    useState('0h0m0s')
+  const [
+    remainingTime,
+    setRemainingTime,
+  ] = useState(
+    'Analyzing print...'
+  )
 
-  const [speed, setSpeed] = useState(100)
-  const [flow, setFlow] = useState(100)
+  // =========================
+  // ETA
+  // =========================
 
-  const [modalVisible, setModalVisible] =
-    useState(false)
+  const etaHistory = useRef([])
+
+  const smoothedEta = useRef(null)
+
+  // =========================
+  // SPEED / FLOW
+  // =========================
+
+  const [speed, setSpeed] =
+    useState(100)
+
+  const [flow, setFlow] =
+    useState(100)
+
+  // =========================
+  // MODALS
+  // =========================
+
+  const [modalVisible,
+    setModalVisible,
+  ] = useState(false)
 
   const [tempType, setTempType] =
     useState('hotend')
@@ -64,6 +131,10 @@ export default function App() {
   const [valueInput, setValueInput] =
     useState('100')
 
+  // =========================
+  // AUTO REFRESH
+  // =========================
+
   useEffect(() => {
     fetchPrinterData()
 
@@ -71,138 +142,267 @@ export default function App() {
       fetchPrinterData()
     }, 1000)
 
-    return () => clearInterval(interval)
-  }, [])
+    return () =>
+      clearInterval(interval)
+  }, [printerIp])
 
-  const fetchPrinterData = async () => {
-    try {
-      const response = await fetch(
-        `http://${MOONRAKER_IP}:${MOONRAKER_PORT}/printer/objects/query?extruder&heater_bed&virtual_sdcard&print_stats&display_status`
-      )
+  // =========================
+  // FETCH PRINTER DATA
+  // =========================
 
-      const json = await response.json()
-
-      console.log(
-        'PRINTER DATA:',
-        json
-      )
-
-      if (
-        !json.result ||
-        !json.result.status
-      ) {
-        return
-      }
-
-      const status = json.result.status
-
-      // HOTEND
-      if (status.extruder) {
-        setHotend(
-          Number(
-            status.extruder.temperature || 0
-          ).toFixed(1)
-        )
-
-        setHotendTarget(
-          Number(
-            status.extruder.target || 0
-          ).toFixed(0)
-        )
-      }
-
-      // BED
-      if (status.heater_bed) {
-        setBed(
-          Number(
-            status.heater_bed.temperature || 0
-          ).toFixed(1)
-        )
-
-        setBedTarget(
-          Number(
-            status.heater_bed.target || 0
-          ).toFixed(0)
-        )
-      }
-
-      // PROGRESSION
-      if (status.display_status) {
-        console.log(
-          'DISPLAY STATUS:',
-          status.display_status
-        )
-
-        const currentProgress =
-          Number(
-            status.display_status
-              .progress || 0
+  const fetchPrinterData =
+    async () => {
+      try {
+        const response =
+          await fetch(
+            `http://${printerIp}:${MOONRAKER_PORT}/printer/objects/query?extruder&heater_bed&virtual_sdcard&print_stats&display_status`
           )
 
-        setProgress(currentProgress)
+        const json =
+          await response.json()
 
-        // ETA dynamique
-        const printed =
-          status.print_stats
-            ?.print_duration || 0
+        if (
+          !json.result ||
+          !json.result.status
+        ) {
+          setConnected(false)
+          return
+        }
 
-        if (currentProgress > 0) {
-          const estimatedTotal =
-            printed / currentProgress
+        setConnected(true)
 
-          const remaining =
-            estimatedTotal - printed
+        const status =
+          json.result.status
 
-          setTotalTime(
-            formatTime(
-              estimatedTotal
-            )
+        // =========================
+        // HOTEND
+        // =========================
+
+        if (status.extruder) {
+          setHotend(
+            Number(
+              status.extruder
+                .temperature || 0
+            ).toFixed(1)
           )
 
-          setRemainingTime(
-            formatTime(
-              Math.max(
-                remaining,
-                0
-              )
-            )
+          setHotendTarget(
+            Number(
+              status.extruder
+                .target || 0
+            ).toFixed(0)
           )
         }
-      }
 
-      // PRINT STATS
-      if (status.print_stats) {
+        // =========================
+        // BED
+        // =========================
+
+        if (status.heater_bed) {
+          setBed(
+            Number(
+              status.heater_bed
+                .temperature || 0
+            ).toFixed(1)
+          )
+
+          setBedTarget(
+            Number(
+              status.heater_bed
+                .target || 0
+            ).toFixed(0)
+          )
+        }
+
+        // =========================
+        // PROGRESS
+        // =========================
+
+        if (status.display_status) {
+          const currentProgress =
+            Number(
+              status.display_status
+                .progress || 0
+            )
+
+          setProgress(currentProgress)
+        }
+
+        // =========================
+        // PRINT STATS + ETA
+        // =========================
+
+        if (status.print_stats) {
+          const currentFilename =
+            status.print_stats
+              .filename ||
+            'No file'
+
+          setFilename(
+            currentFilename
+          )
+
+          const printDuration =
+            Number(
+              status.print_stats
+                .total_duration || 0
+            )
+
+          const currentProgress =
+            Number(
+              status.display_status
+                ?.progress || 0
+            )
+
+          // ETA uniquement
+          // après :
+          // - 10%
+          // - 5 minutes
+
+          if (
+            currentProgress >=
+              0.10 &&
+            printDuration >= 300
+          ) {
+            const rawEta =
+              printDuration /
+              currentProgress
+
+            // =========================
+            // MOVING AVERAGE
+            // =========================
+
+            etaHistory.current.push(
+              rawEta
+            )
+
+            if (
+              etaHistory.current
+                .length > 20
+            ) {
+              etaHistory.current.shift()
+            }
+
+            const averageEta =
+              etaHistory.current.reduce(
+                (a, b) => a + b,
+                0
+              ) /
+              etaHistory.current.length
+
+            // =========================
+            // SMOOTHING
+            // =========================
+
+            if (
+              smoothedEta.current ===
+              null
+            ) {
+              smoothedEta.current =
+                averageEta
+            } else {
+              smoothedEta.current =
+                smoothedEta.current *
+                  0.92 +
+                averageEta * 0.08
+            }
+
+            // =========================
+            // ANTI SPIKES
+            // =========================
+
+            const maxVariation =
+              smoothedEta.current *
+              0.02
+
+            if (
+              averageEta >
+              smoothedEta.current +
+                maxVariation
+            ) {
+              smoothedEta.current +=
+                maxVariation
+            }
+
+            if (
+              averageEta <
+              smoothedEta.current -
+                maxVariation
+            ) {
+              smoothedEta.current -=
+                maxVariation
+            }
+
+            // =========================
+            // FINAL ETA
+            // =========================
+
+            const remainingSeconds =
+              smoothedEta.current -
+              printDuration
+
+            setTotalTime(
+              formatTime(
+                smoothedEta.current
+              )
+            )
+
+            setRemainingTime(
+              formatTime(
+                Math.max(
+                  remainingSeconds,
+                  0
+                )
+              )
+            )
+          } else {
+            setTotalTime(
+              'Analyzing print...'
+            )
+
+            setRemainingTime(
+              'Analyzing print...'
+            )
+          }
+        }
+      } catch (err) {
         console.log(
-          'PRINT STATS:',
-          status.print_stats
+          'FETCH ERROR:',
+          err
         )
 
-        const currentFilename =
-          status.print_stats.filename ||
-          'No file'
-
-        setFilename(currentFilename)
+        setConnected(false)
       }
-    } catch (err) {
-      console.log(
-        'FETCH ERROR:',
-        err
-      )
     }
-  }
+
+  // =========================
+  // CONNECT
+  // =========================
+
+  const connectToPrinter =
+    () => {
+      setPrinterIp(ipInput)
+      setConnectModalVisible(false)
+    }
+
+  // =========================
+  // SEND GCODE
+  // =========================
 
   const sendGcode = async (
     script
   ) => {
     try {
       await fetch(
-        `http://${MOONRAKER_IP}:${MOONRAKER_PORT}/printer/gcode/script`,
+        `http://${printerIp}:${MOONRAKER_PORT}/printer/gcode/script`,
         {
           method: 'POST',
+
           headers: {
             'Content-Type':
               'application/json',
           },
+
           body: JSON.stringify({
             script,
           }),
@@ -213,11 +413,15 @@ export default function App() {
     }
   }
 
+  // =========================
+  // EMERGENCY STOP
+  // =========================
+
   const emergencyStop =
     async () => {
       try {
         await fetch(
-          `http://${MOONRAKER_IP}:${MOONRAKER_PORT}/printer/emergency_stop`,
+          `http://${printerIp}:${MOONRAKER_PORT}/printer/emergency_stop`,
           {
             method: 'POST',
           }
@@ -243,16 +447,22 @@ export default function App() {
             text: 'Cancel',
             style: 'cancel',
           },
+
           {
             text: 'STOP',
             style:
               'destructive',
+
             onPress:
               emergencyStop,
           },
         ]
       )
     }
+
+  // =========================
+  // FORMAT TIME
+  // =========================
 
   const formatTime = (
     seconds
@@ -272,6 +482,10 @@ export default function App() {
     return `${h}h${m}m${s}s`
   }
 
+  // =========================
+  // SNAP
+  // =========================
+
   const magneticSnap = (
     value
   ) => {
@@ -280,11 +494,16 @@ export default function App() {
       value <= 103
     ) {
       Haptics.selectionAsync()
+
       return 100
     }
 
     return Math.round(value)
   }
+
+  // =========================
+  // SPEED FLOW
+  // =========================
 
   const updateSpeed = (
     value
@@ -326,6 +545,10 @@ export default function App() {
     sendGcode('M221 S100')
   }
 
+  // =========================
+  // TEMP MODAL
+  // =========================
+
   const openTempModal = (
     type
   ) => {
@@ -364,6 +587,10 @@ export default function App() {
 
       setModalVisible(false)
     }
+
+  // =========================
+  // VALUE MODAL
+  // =========================
 
   const openValueModal = (
     type
@@ -409,6 +636,28 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      {/* TOP BAR */}
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          style={styles.connectButton}
+          onPress={() =>
+            setConnectModalVisible(
+              true
+            )
+          }
+        >
+          <Text
+            style={
+              styles.connectButtonText
+            }
+          >
+            {connected
+              ? `CONNECTED : ${printerIp}`
+              : 'CONNECT PRINTER'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.topRow}>
         {/* TEMP */}
         <View style={styles.tempBox}>
@@ -612,27 +861,29 @@ export default function App() {
             confirmEmergencyStop
           }
         >
-          <Text
-            style={
-              styles.stopTopText
-            }
-          >
-            EMERGENCY
-          </Text>
+          <View style={styles.stopRing}>
+            <Text
+              style={
+                styles.stopTopText
+              }
+            >
+              EMERGENCY
+            </Text>
 
-          <View
-            style={
-              styles.stopButton
-            }
-          />
+            <View
+              style={
+                styles.stopButton
+              }
+            />
 
-          <Text
-            style={
-              styles.stopBottomText
-            }
-          >
-            STOP
-          </Text>
+            <Text
+              style={
+                styles.stopBottomText
+              }
+            >
+              STOP
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -695,6 +946,64 @@ export default function App() {
           {remainingTime}
         </Text>
       </View>
+
+      {/* CONNECT MODAL */}
+      <Modal
+        visible={
+          connectModalVisible
+        }
+        transparent
+        animationType='fade'
+      >
+        <View
+          style={
+            styles.modalOverlay
+          }
+        >
+          <View
+            style={
+              styles.modalContent
+            }
+          >
+            <Text
+              style={
+                styles.modalTitle
+              }
+            >
+              Connect Printer
+            </Text>
+
+            <TextInput
+              style={
+                styles.input
+              }
+              value={ipInput}
+              onChangeText={
+                setIpInput
+              }
+              placeholder='192.168.1.xxx'
+              placeholderTextColor='#999'
+            />
+
+            <TouchableOpacity
+              style={
+                styles.modalButton
+              }
+              onPress={
+                connectToPrinter
+              }
+            >
+              <Text
+                style={
+                  styles.modalButtonText
+                }
+              >
+                CONNECT
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* TEMP MODAL */}
       <Modal
@@ -812,271 +1121,305 @@ export default function App() {
   )
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor:
-        '#2D007A',
-      padding: 15 * scale,
-    },
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor:
+      '#2D007A',
+    padding: 15 * scale,
+  },
 
-    topRow: {
-      flexDirection: 'row',
-      justifyContent:
-        'space-between',
-    },
+  topBar: {
+    marginBottom:
+      10 * scale,
+    alignItems:
+      'center',
+  },
 
-    tempBox: {
-      width: '30%',
-      borderWidth: 2,
-      borderColor:
-        '#00B7FF',
-      padding: 12 * scale,
-    },
+  connectButton: {
+    borderWidth: 2,
+    borderColor:
+      '#00B7FF',
+    paddingHorizontal:
+      20 * scale,
+    paddingVertical:
+      8 * scale,
+  },
 
-    tempTitle: {
-      color: 'white',
-      fontSize:
-        22 * scale,
-      fontWeight: 'bold',
-      alignSelf: 'center',
-      marginBottom:
-        10 * scale,
-    },
+  connectButtonText: {
+    color: 'white',
+    fontSize:
+      18 * scale,
+    fontWeight: 'bold',
+  },
 
-    tempButton: {
-      borderWidth: 2,
-      borderColor:
-        '#00B7FF',
-      padding: 12 * scale,
-      marginBottom:
-        12 * scale,
-    },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent:
+      'space-between',
+  },
 
-    tempText: {
-      color: 'white',
-      fontSize:
-        26 * scale,
-      fontWeight: 'bold',
-    },
+  tempBox: {
+    width: '30%',
+    borderWidth: 2,
+    borderColor:
+      '#00B7FF',
+    padding: 12 * scale,
+  },
 
-    sliderContainer: {
-      width: '42%',
-      justifyContent:
-        'center',
-    },
+  tempTitle: {
+    color: 'white',
+    fontSize:
+      22 * scale,
+    fontWeight: 'bold',
+    alignSelf: 'center',
+    marginBottom:
+      10 * scale,
+  },
 
-    controlHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom:
-        5 * scale,
-    },
+  tempButton: {
+    borderWidth: 2,
+    borderColor:
+      '#00B7FF',
+    padding: 12 * scale,
+    marginBottom:
+      12 * scale,
+  },
 
-    sliderLabel: {
-      color: 'white',
-      fontSize:
-        28 * scale,
-      fontWeight: 'bold',
-      marginRight:
-        10 * scale,
-    },
+  tempText: {
+    color: 'white',
+    fontSize:
+      26 * scale,
+    fontWeight: 'bold',
+  },
 
-    resetMiniButton: {
-      marginRight:
-        10 * scale,
-    },
+  sliderContainer: {
+    width: '42%',
+    justifyContent:
+      'center',
+  },
 
-    resetMiniText: {
-      color: 'white',
-      fontSize:
-        26 * scale,
-    },
+  controlHeader: {
+    flexDirection: 'row',
+    alignItems:
+      'center',
+    marginBottom:
+      5 * scale,
+  },
 
-    valueBox: {
-      borderWidth: 1,
-      borderColor:
-        '#AEEBFF',
-      paddingHorizontal:
-        18 * scale,
-      paddingVertical:
-        6 * scale,
-    },
+  sliderLabel: {
+    color: 'white',
+    fontSize:
+      28 * scale,
+    fontWeight: 'bold',
+    marginRight:
+      10 * scale,
+  },
 
-    valueText: {
-      color: 'white',
-      fontSize:
-        24 * scale,
-    },
+  resetMiniButton: {
+    marginRight:
+      10 * scale,
+  },
 
-    slider: {
-      width: '100%',
-      height: 30 * scale,
-      marginBottom:
-        20 * scale,
-    },
+  resetMiniText: {
+    color: 'white',
+    fontSize:
+      26 * scale,
+  },
 
-    stopContainer: {
-      width: '22%',
-      alignItems:
-        'center',
-      justifyContent:
-        'center',
-    },
+  valueBox: {
+    borderWidth: 1,
+    borderColor:
+      '#AEEBFF',
+    paddingHorizontal:
+      18 * scale,
+    paddingVertical:
+      6 * scale,
+  },
 
-    stopTopText: {
-      color: 'white',
-      fontSize:
-        34 * scale,
-      marginBottom:
-        5 * scale,
-    },
+  valueText: {
+    color: 'white',
+    fontSize:
+      24 * scale,
+  },
 
-    stopButton: {
-      width: 110 * scale,
+  slider: {
+    width: '100%',
+    height: 30 * scale,
+    marginBottom:
+      20 * scale,
+  },
+
+  stopContainer: {
+    width: '22%',
+    alignItems:
+      'center',
+    justifyContent:
+      'center',
+  },
+
+  stopRing: {
+    width: 180 * scale,
+    height: 180 * scale,
+    borderRadius: 200,
+    borderWidth: 6,
+    borderColor: '#FF0000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  stopTopText: {
+    color: 'white',
+    fontSize:
+      28 * scale,
+    marginBottom:
+      5 * scale,
+  },
+
+  stopButton: {
+    width: 100 * scale,
+    height:
+      100 * scale,
+    borderRadius: 100,
+    backgroundColor:
+      '#FF7A1A',
+  },
+
+  stopBottomText: {
+    color: 'white',
+    fontSize:
+      28 * scale,
+    marginTop:
+      5 * scale,
+  },
+
+  bottomContainer: {
+    marginTop:
+      15 * scale,
+    alignItems:
+      'center',
+  },
+
+  progressBarBackground:
+    {
+      width: '96%',
       height:
-        110 * scale,
-      borderRadius: 100,
+        38 * scale,
       backgroundColor:
-        '#FF7A1A',
-    },
-
-    stopBottomText: {
-      color: 'white',
-      fontSize:
-        34 * scale,
-      marginTop:
-        5 * scale,
-    },
-
-    bottomContainer: {
-      marginTop:
-        15 * scale,
-      alignItems:
-        'center',
-    },
-
-    progressBarBackground:
-      {
-        width: '96%',
-        height:
-          38 * scale,
-        backgroundColor:
-          '#E0E0E0',
-        overflow:
-          'hidden',
-        justifyContent:
-          'center',
-      },
-
-    progressBarFill: {
-      position:
-        'absolute',
-      left: 0,
-      top: 0,
-      bottom: 0,
-      backgroundColor:
-        '#FFC400',
-    },
-
-    totalTimeText: {
-      position:
-        'absolute',
-      left: 10 * scale,
-      color: '#2D007A',
-      fontSize:
-        18 * scale,
-      fontWeight: 'bold',
-    },
-
-    progressText: {
-      position:
-        'absolute',
-      alignSelf:
-        'center',
-      color: '#2D007A',
-      fontSize:
-        20 * scale,
-      fontWeight: 'bold',
-    },
-
-    filename: {
-      marginTop:
-        12 * scale,
-      color: 'white',
-      fontSize:
-        28 * scale,
-      fontWeight: 'bold',
-    },
-
-    remainingTime: {
-      marginTop:
-        5 * scale,
-      color: 'white',
-      fontSize:
-        22 * scale,
-    },
-
-    modalOverlay: {
-      flex: 1,
+        '#E0E0E0',
+      overflow:
+        'hidden',
       justifyContent:
         'center',
-      alignItems:
-        'center',
-      backgroundColor:
-        'rgba(0,0,0,0.7)',
     },
 
-    modalContent: {
-      width: 300 * scale,
-      backgroundColor:
-        '#2D007A',
-      padding:
-        20 * scale,
-      borderWidth: 2,
-      borderColor:
-        '#00B7FF',
-    },
+  progressBarFill: {
+    position:
+      'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor:
+      '#FFC400',
+  },
 
-    modalTitle: {
-      color: 'white',
-      fontSize:
-        24 * scale,
-      textAlign:
-        'center',
-      marginBottom:
-        15 * scale,
-    },
+  totalTimeText: {
+    position:
+      'absolute',
+    left: 10 * scale,
+    color: '#2D007A',
+    fontSize:
+      18 * scale,
+    fontWeight: 'bold',
+  },
 
-    input: {
-      borderWidth: 2,
-      borderColor:
-        '#00B7FF',
-      color: 'white',
-      fontSize:
-        26 * scale,
-      padding:
-        10 * scale,
-      marginBottom:
-        15 * scale,
-      textAlign:
-        'center',
-    },
+  progressText: {
+    position:
+      'absolute',
+    alignSelf:
+      'center',
+    color: '#2D007A',
+    fontSize:
+      20 * scale,
+    fontWeight: 'bold',
+  },
 
-    modalButton: {
-      backgroundColor:
-        '#00B7FF',
-      padding:
-        14 * scale,
-    },
+  filename: {
+    marginTop:
+      12 * scale,
+    color: 'white',
+    fontSize:
+      28 * scale,
+    fontWeight: 'bold',
+  },
 
-    modalButtonText: {
-      color: 'white',
-      fontSize:
-        22 * scale,
-      fontWeight: 'bold',
-      textAlign:
-        'center',
-    },
-  })
+  remainingTime: {
+    marginTop:
+      5 * scale,
+    color: 'white',
+    fontSize:
+      22 * scale,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent:
+      'center',
+    alignItems:
+      'center',
+    backgroundColor:
+      'rgba(0,0,0,0.7)',
+  },
+
+  modalContent: {
+    width: 300 * scale,
+    backgroundColor:
+      '#2D007A',
+    padding:
+      20 * scale,
+    borderWidth: 2,
+    borderColor:
+      '#00B7FF',
+  },
+
+  modalTitle: {
+    color: 'white',
+    fontSize:
+      24 * scale,
+    textAlign:
+      'center',
+    marginBottom:
+      15 * scale,
+  },
+
+  input: {
+    borderWidth: 2,
+    borderColor:
+      '#00B7FF',
+    color: 'white',
+    fontSize:
+      26 * scale,
+    padding:
+      10 * scale,
+    marginBottom:
+      15 * scale,
+    textAlign:
+      'center',
+  },
+
+  modalButton: {
+    backgroundColor:
+      '#00B7FF',
+    padding:
+      14 * scale,
+  },
+
+  modalButtonText: {
+    color: 'white',
+    fontSize:
+      22 * scale,
+    fontWeight: 'bold',
+    textAlign:
+      'center',
+  },
+})

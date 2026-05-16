@@ -5,13 +5,37 @@
     "version": "1.0.0",
     "orientation": "landscape",
     "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2D007A"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
     "android": {
-      "package": "com.klipper.kontrol"
+      "package": "com.bg3d81.klipperkontrol",
+      "permissions": [
+        "INTERNET"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#000000"
+      }
     },
     "extra": {
       "eas": {
         "projectId": "8cd4ddc6-8f5d-473e-b0ea-c27327b53538"
       }
-    }
+    },
+    "owner": "bg3d81"
   }
 }
