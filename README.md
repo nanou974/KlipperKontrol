@@ -36,6 +36,32 @@ The goal is to transform an Android tablet into a real industrial 3D printer con
 
 ---
 
+# Android DNS Issue
+
+Some Android devices using:
+- custom DNS,
+- ad blockers,
+- private DNS,
+- VPN DNS filtering,
+
+may block GitHub release downloads or local Moonraker HTTP connections.
+
+If APK downloads fail with errors such as:
+
+```text
+ERR_SSL_PROTOCOL_ERROR
+```
+
+try:
+- disabling Private DNS,
+- disabling DNS filtering,
+- disabling adblock DNS,
+- or temporarily switching back to automatic DNS.
+
+This issue is unrelated to KlipperKontrol itself and is caused by Android network filtering.
+
+---
+
 # Features
 
 ## Real-time temperatures
