@@ -19,11 +19,15 @@
 Industrial Android control panel for Klipper 3D printers.
 </p>
 
+<p align="center">
+Dedicated touchscreen interface for Moonraker-powered printers.
+</p>
+
 ---
 
 # Overview
 
-KlipperKontrol is a touchscreen-oriented Android application designed to control a Klipper-based 3D printer through Moonraker.
+KlipperKontrol is a touchscreen-oriented Android application designed to control Klipper-based 3D printers through the Moonraker API.
 
 Unlike Fluidd or Mainsail, KlipperKontrol is designed as a dedicated industrial control interface:
 - minimal,
@@ -33,6 +37,45 @@ Unlike Fluidd or Mainsail, KlipperKontrol is designed as a dedicated industrial 
 - workshop-oriented.
 
 The goal is to transform an Android tablet into a real industrial 3D printer control panel.
+
+KlipperKontrol is ideal for:
+- Android tablets,
+- Raspberry Pi touchscreens,
+- wall-mounted printer dashboards,
+- dedicated Klipper control stations,
+- industrial-style 3D printer interfaces.
+
+---
+
+# Topics
+
+```text
+klipper
+moonraker
+3d-printing
+android
+react-native
+expo
+touchscreen
+printer-dashboard
+industrial-ui
+klipper-control
+```
+
+Add these in GitHub:
+`Repository → About → ⚙️ → Topics`
+
+---
+
+# Screenshots
+
+_Add screenshots here to improve GitHub and Google indexing._
+
+```md
+![Dashboard](./screenshots/dashboard.png)
+![Temperature Control](./screenshots/temp.png)
+![Print Monitoring](./screenshots/printing.png)
+```
 
 ---
 
@@ -123,7 +166,7 @@ Optimized for:
 ## Clone repository
 
 ```bash
-git clone https://github.com/nanou974/KlipperKontrol.git
+git clone https://github.com/bg3d81/KlipperKontrol.git
 ```
 
 ---
@@ -303,34 +346,6 @@ npx expo install expo-build-properties
 
 ---
 
-# Android DNS Issue
-
-Some Android devices using:
-- custom DNS,
-- ad blockers,
-- private DNS,
-- VPN DNS filtering,
-
-may block:
-- GitHub release downloads,
-- or local Moonraker HTTP connections.
-
-If APK downloads fail with errors such as:
-
-```text
-ERR_SSL_PROTOCOL_ERROR
-```
-
-try:
-- disabling Private DNS,
-- disabling DNS filtering,
-- disabling adblock DNS,
-- or temporarily switching back to automatic DNS.
-
-This issue is unrelated to KlipperKontrol itself and is caused by Android network filtering.
-
----
-
 # Project structure
 
 ```text
@@ -386,8 +401,29 @@ The goal is to create:
 
 ---
 
+# GitHub SEO Tips
+
+To improve GitHub and Google référencement:
+- add screenshots,
+- create GitHub releases,
+- add repository topics,
+- keep commits active,
+- add a project website or GitHub Pages later,
+- share the repository on Reddit or 3D printing communities.
+
+---
+
 # License
 
-Personal / experimental project.
+MIT License
 
-Free to modify and improve.
+---
+
+# Support
+
+If you like this project:
+- ⭐ Star the repository
+- 🔧 Contribute improvements
+- 📢 Share the project
+
+Built for makers, tinkerers and industrial 3D printing enthusiasts.
